@@ -1,0 +1,231 @@
+void SetUp()
+   ClearText()
+   if (Input('restore default_location? (y/n)')=='y')
+   SaveMemory('default_location','Computer1')
+   end
+   if (Input('restore locations? (y/n)')=='y')
+   SaveArrayMemory('locations',[])
+   end 
+   TestArrayMemories()  
+end
+
+string GetHardDriveName()
+    return 'Lodge_Room1_MediumSewerComputer_MediumSewerComputer_1'
+end
+
+string GetPoliceComputerName()
+    return 'PoliceOfficeInterior_MinistryOfficeWorkstationComputer_1'
+end
+
+array GetMemories()
+    DisconnectAll()
+    var dataserver=Connect(GetHardDriveName())
+    return dataserver.GetMemories()    
+end
+
+void SaveMemory(var key,var val)
+    DisconnectAll()
+    var dataserver=Connect(GetHardDriveName())
+    dataserver.SaveMemory(key,val)    
+end
+
+string LoadMemory(var key)
+    DisconnectAll()
+    var dataserver=Connect(GetHardDriveName())
+    return dataserver.LoadMemory(key)    
+end
+
+void EraseMemory(var key)
+    DisconnectAll()
+    var dataserver=Connect(GetHardDriveName())
+    dataserver.EraseMemory(key)    
+end
+
+bool HasMemory(var key)
+    DisconnectAll()
+    var dataserver=Connect(GetHardDriveName())
+    return dataserver.HasMemory(key)    
+end
+
+string Tap(string name)
+    string default =LoadMemory('default_location')
+    DisconnectAll()
+    bool notfound = true
+    loop x in LoadArrayMemory('locations')
+       if x==name
+          notfound =false    
+       end 
+    end
+    if notfound
+      AppendArrayMemory('locations',name)     
+    end 
+    var remote =Connect(name)
+    remote.DisconnectAll()
+    remote.Connect(default)
+    remote.Slurp()
+end
+
+void EraseArrayMemory(string key)
+   string arraycount =key+'_len'
+   if HasMemory(arraycount)
+      number c = LoadMemory(arraycount)
+      loop x in Range(0,c+(-1))
+         EraseMemory(key+'_'+x) 
+      end
+      EraseMemory(arraycount)
+   end 
+end
+
+array LoadArrayMemory(string key)
+   array rval =[]
+   string arraycount =key+'_len'
+   if HasMemory(arraycount)
+      number c = LoadMemory(arraycount)
+      loop x in Range(0,c+(-1))
+         Append(rval,LoadMemory(key+'_'+x))
+      end
+   end 
+  return rval
+end
+
+void RemoveArrayMemory(string key,number index)
+   array t = LoadArrayMemory(key)
+   Remove(t,index)
+   array rval=[]
+   loop x in t
+      Append(rval,x)
+   end 
+   SaveArrayMemory(key,rval)
+end
+array PopArrayMemory(string key)
+   array rval =[]
+   string arraycount =key+'_len'
+   if HasMemory(arraycount)
+      number c = LoadMemory(arraycount)
+      c-=1
+      Append(rval,LoadMemory(key+'_'+c))
+      EraseMemory(key+'_'+c)
+      SaveMemory(arraycount,c)
+   end
+   return rval
+end
+
+void AppendArrayMemory(string key,var val)
+   string arraycount =key+'_len'
+   if HasMemory(arraycount)
+      number c = LoadMemory(arraycount)
+      SaveMemory(key+'_'+c,val)
+      c+=1
+      SaveMemory(arraycount,c)
+   end 
+end
+
+void SaveArrayMemory(string key, array val)
+   string arraycount =key+'_len'
+   if HasMemory(arraycount)
+       EraseArrayMemory(key)
+   end
+   SaveMemory(arraycount,Count(val))
+   loop x in Range(0,Count(val)+(-1))
+      SaveMemory(key+'_'+x,val[x]) 
+   end
+end
+
+void TestArrayMemories()
+    ClearText()
+    array tst =[1,2,3,4]
+    Print('saving: ')
+    Print(tst)
+    SaveArrayMemory('tst',tst)
+    Print('Loading: ')
+    Print(LoadArrayMemory('tst'))
+    Print('All Memorys')
+    Print(GetMemories())
+    Print('Appending: 5 to:')
+    Print(tst)
+    AppendArrayMemory('tst',5)
+    Print('Loading: ')
+    Print(LoadArrayMemory('tst'))
+    Print('poppoing:')
+    Print(PopArrayMemory('tst'))
+    Print('Loading: ')
+    Print(LoadArrayMemory('tst'))
+    Print('removing at 1:')
+    RemoveArrayMemory('tst',1)
+    Print('Loading: ')
+    Print(LoadArrayMemory('tst'))
+    Print('Eraseing:')
+    EraseArrayMemory('tst')
+    Print('Remaining Memories')
+    Print(GetMemories())
+    if HasMemory('tst')
+        Print('Test Pass: No tst array still exsists')
+    else  
+        Print('Test Pass: Yes')    
+    end   
+end
+
+
+array GetAllRooms()
+   DisconnectAll()
+   var cops=Connect(GetPoliceComputerName())
+   return cops.GetAllRooms() 
+end
+
+array GetThingsOfType(string type)
+   DisconnectAll()
+   var cops = Connect(GetPoliceComputerName())
+   return cops.GetThingsOfType(type)
+end
+
+array GetThingsInRoom(string r)
+    DisconnectAll()
+    var cops=Connect(GetPoliceComputerName())
+    return cops.GetThingsInRoom(r)
+end
+
+array GetPeople()
+    DisconnectAll()
+    var cops=Connect(GetPoliceComputerName())
+    return cops.GetPeople()
+end
+
+var GetPosition(string name)
+    DisconnectAll()
+    var cops =Connect(GetPoliceComputerName())
+    return cops.GetPosition(name)
+end
+
+void SetPosition(string name,string targetThing)
+    DisconnectAll()
+    var cops = Connect(GetPoliceComputerName())
+    cops.SetPosition(name,targetThing)
+end
+
+void UnlockAll()
+   var rooms = GetAllRooms()
+   loop r in rooms
+      var things = GetThingsInRoom(r)
+      loop t in things
+          Unlock(t)
+      end
+   end
+end 
+
+void SaveAllThings()
+    if HasFloppy()
+        ClearData()
+        var rooms = GetAllRooms()
+        loop r in rooms
+            var things = GetThingsInRoom(r)
+            loop t in things
+                SaveData(t)
+            end  
+        Print(r)
+        end
+    else
+        Print('no floppy to download to')
+    end   
+end 
+
+SetUp()
