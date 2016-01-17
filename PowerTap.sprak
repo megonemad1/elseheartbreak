@@ -1,0 +1,3 @@
+void Tap(string name)
+    Connect('Computer1').Tap(name)
+end

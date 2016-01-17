@@ -1,0 +1,3 @@
+Note if you cant change the power tap code yet you can change the fuseboxes individuly both ways will function properly
+to change a fusebox:
+ammend the line endinng in "Connect('PowerTap')" to "Connect('Computer1')" (asuming computer 1 is where you put my other computer1.sprank script)
