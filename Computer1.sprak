@@ -1,12 +1,23 @@
 void SetUp()
    ClearText()
+   PrintBanner('SetUp Defaults','-=+=-')
    if (Input('restore default_location? (y/n)')=='y')
    SaveMemory('default_location','Computer1')
    end
    if (Input('restore locations? (y/n)')=='y')
    SaveArrayMemory('locations',[])
    end 
+   PrintBanner('Raw Functions','-=+=-')
+   if (Input('Unlock all doors? (y/n)')=='y')
+       UnlockAll()
+   end
+   if (HasFloppy())
+   if (Input('Save All Things? (y/n)')=='y')
+       SaveAllThings()
+   end 
+   end
    TestArrayMemories()  
+   Print(Split('1,2',','))
 end
 
 string GetHardDriveName()
@@ -18,33 +29,33 @@ string GetPoliceComputerName()
 end
 
 array GetMemories()
-    DisconnectAll()
-    var dataserver=Connect(GetHardDriveName())
-    return dataserver.GetMemories()    
+DisconnectAll()
+var dataserver=Connect(GetHardDriveName())
+return dataserver.GetMemories()    
 end
 
 void SaveMemory(var key,var val)
-    DisconnectAll()
-    var dataserver=Connect(GetHardDriveName())
-    dataserver.SaveMemory(key,val)    
+DisconnectAll()
+var dataserver=Connect(GetHardDriveName())
+dataserver.SaveMemory(key,val)    
 end
 
 string LoadMemory(var key)
-    DisconnectAll()
-    var dataserver=Connect(GetHardDriveName())
-    return dataserver.LoadMemory(key)    
+DisconnectAll()
+var dataserver=Connect(GetHardDriveName())
+return dataserver.LoadMemory(key)    
 end
 
 void EraseMemory(var key)
-    DisconnectAll()
-    var dataserver=Connect(GetHardDriveName())
-    dataserver.EraseMemory(key)    
+DisconnectAll()
+var dataserver=Connect(GetHardDriveName())
+dataserver.EraseMemory(key)    
 end
 
 bool HasMemory(var key)
-    DisconnectAll()
-    var dataserver=Connect(GetHardDriveName())
-    return dataserver.HasMemory(key)    
+DisconnectAll()
+var dataserver=Connect(GetHardDriveName())
+return dataserver.HasMemory(key)    
 end
 
 string Tap(string name)
@@ -131,8 +142,24 @@ void SaveArrayMemory(string key, array val)
    end
 end
 
+void PrintBanner(string s,string h)
+   number len = 30
+   Print('')
+   loop i in Range(0,Int(len/Count(h)))
+      PrintS(h) 
+   end
+   Print('')
+   Print(s)
+   loop i in Range(0,Int(len/Count(h)))
+      PrintS(h) 
+   end
+Print('')
+Print('')
+end
+
 void TestArrayMemories()
     ClearText()
+    PrintBanner('TESTING MEMORYS','-=+=-')
     array tst =[1,2,3,4]
     Print('saving: ')
     Print(tst)
@@ -158,11 +185,9 @@ void TestArrayMemories()
     EraseArrayMemory('tst')
     Print('Remaining Memories')
     Print(GetMemories())
-    if HasMemory('tst')
-        Print('Test Pass: No tst array still exsists')
-    else  
-        Print('Test Pass: Yes')    
-    end   
+    string ban = 'TEST RESULT: '
+    ban+= !HasMemory('tst')
+    PrintBanner(ban,'~')
 end
 
 
@@ -178,6 +203,12 @@ array GetThingsOfType(string type)
    return cops.GetThingsOfType(type)
 end
 
+var GetTypeOfThing(string thing)
+   DisconnectAll()
+   var cops = Connect(GetPoliceComputerName())
+   return cops.GetTypeOfThing(thing)
+end
+
 array GetThingsInRoom(string r)
     DisconnectAll()
     var cops=Connect(GetPoliceComputerName())
@@ -188,6 +219,12 @@ array GetPeople()
     DisconnectAll()
     var cops=Connect(GetPoliceComputerName())
     return cops.GetPeople()
+end
+
+var GetAction(string name)
+    DisconnectAll()
+    var cops =Connect(GetPoliceComputerName())
+    return cops.GetAction(name)
 end
 
 var GetPosition(string name)
@@ -202,30 +239,105 @@ void SetPosition(string name,string targetThing)
     cops.SetPosition(name,targetThing)
 end
 
+void InteractWith(string thing)
+    DisconnectAll()
+    var cops = Connect(GetPoliceComputerName())
+    cops.InteractWith(thing)
+end
+
 void UnlockAll()
-   var rooms = GetAllRooms()
-   loop r in rooms
-      var things = GetThingsInRoom(r)
-      loop t in things
+   var doors = GetThingsOfType('door')
+   loop t in doors
           Unlock(t)
-      end
    end
 end 
 
 void SaveAllThings()
     if HasFloppy()
         ClearData()
+        number rcount=0
         var rooms = GetAllRooms()
+        var maxrooms=Count(rooms)
         loop r in rooms
+            rcount+=1
             var things = GetThingsInRoom(r)
+            number max =Count(things)
+            number i=0
             loop t in things
-                SaveData(t)
-            end  
-        Print(r)
+                
+                i+=1
+                ClearText()
+                PrintS('Saving level ')
+                PrintS(Int(100*(rcount/maxrooms)))
+                Print("'/.")
+                PrintS('on room ')
+            PrintS(r)
+            PrintS(' @ ')
+                PrintS( Int(100*(i/max)))
+                Print("'/.")
+                Print('')
+
+Print('Thing')
+Print('  '+t)
+var typ= GetTypeOfThing(t)
+Print('type')
+Print('  '+typ)
+Print('saving')
+                SaveData(typ+', '+r+', '+t)
+            Print('Done')
+            end
         end
+        PrintBanner('Done','~')
     else
         Print('no floppy to download to')
     end   
 end 
+
+bool HasSubstringAt(string haystack, number haystackPos, string needle)
+    number size = Count(haystack)
+    number remainingSize = size - haystackPos
+    number needleSize = Count(needle)
+
+    if (remainingSize < needleSize)
+        return False
+    end
+
+    loop i from 0 to (needleSize - 1)
+        if (haystack[haystackPos + i] != needle[i])
+            return False
+        end
+    end
+    return True
+end
+array Split(string str, string delimiter)
+    number size = Count(str)
+    number delimiterSize = Count(delimiter)
+
+    if (size <= 0)
+        return []
+    end
+
+    array ret = []
+    string currentLine = ""
+
+    number i = 0
+    loop
+        if (HasSubstringAt(str, i, "\n"))
+            Append(ret, currentLine)
+            currentLine = ""
+            i += delimiterSize
+        else
+            currentLine += str[i]
+            i += 1
+        end
+
+        if (i >= size)
+            break
+        end
+    end
+
+    Append(ret, currentLine)
+    return ret
+end
 
 SetUp()
