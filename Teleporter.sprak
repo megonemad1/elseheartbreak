@@ -1,0 +1,95 @@
+#string msg = SetWorldPosition("Hotel_Exterior", 41, 35)
+#SetWorldPosition('Ministry_ChamberOfNumbers',11,-110)
+void main()
+   string first =Position()
+   string next =first
+   loop
+        next= Position()
+        if first != next
+            break
+        end
+   end
+ array firstPos=ToPos(first)
+   array nextPos=ToPos(next)
+   number dx = nextPos[0]-firstPos[0]
+   number dy = nextPos[1]-firstPos[1]
+   number tx=0
+   number ty=0
+   if dx != 0
+       if dx>0
+           tx=1
+       else
+           tx=-1
+       end
+   end
+   if dy != 0
+       if dy>0
+           ty=1
+       else
+           ty=-1
+       end
+   end
+   Print('init Warp-Drive')
+   Teleport(nextPos[0]+(tx*10),nextPos[1]+(ty*10))
+   Print('Fizzle')
+   # Teleport(42,37)
+
+end
+array ToPos(string p )
+array pts = Split(p,',')
+array x =Split(pts[0],': ')
+array y =Split(pts[1],': ')
+number rx = x[1]
+number ry = y[1]
+return [rx,ry]
+end
+
+bool HasSubstringAt(string haystack, number haystackPos, string needle)
+    number size = Count(haystack)
+    number remainingSize = size - haystackPos
+    number needleSize = Count(needle)
+
+    if (remainingSize < needleSize)
+        return False
+    end
+
+    loop i from 0 to (needleSize - 1)
+        if (haystack[haystackPos + i] != needle[i])
+            return False
+        end
+    end
+    return True
+end
+array Split(string str, string delimiter)
+    number size = Count(str)
+    number delimiterSize = Count(delimiter)
+
+    if (size <= 0)
+        return []
+    end
+
+    array ret = []
+    string currentLine = ""
+
+    number i = 0
+    loop
+        if (HasSubstringAt(str, i, delimiter))
+            Append(ret, currentLine)
+            currentLine = ""
+            i += delimiterSize
+        else
+            currentLine += str[i]
+            i += 1
+        end
+
+        if (i >= size)
+            break
+        end
+    end
+
+    Append(ret, currentLine)
+    return ret
+end
+
+
+main()

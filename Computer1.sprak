@@ -17,7 +17,7 @@ void SetUp()
    end 
    end
    TestArrayMemories()  
-   Print(Split('1,2',','))
+   TestSplit()
 end
 
 string GetHardDriveName()
@@ -265,6 +265,7 @@ void SaveAllThings()
             number i=0
             loop t in things
                 
+                SaveData(GetTypeOfThing(t)+', '+r+', '+t)
                 i+=1
                 ClearText()
                 PrintS('Saving level ')
@@ -275,16 +276,6 @@ void SaveAllThings()
             PrintS(' @ ')
                 PrintS( Int(100*(i/max)))
                 Print("'/.")
-                Print('')
-
-Print('Thing')
-Print('  '+t)
-var typ= GetTypeOfThing(t)
-Print('type')
-Print('  '+typ)
-Print('saving')
-                SaveData(typ+', '+r+', '+t)
-            Print('Done')
             end
         end
         PrintBanner('Done','~')
@@ -293,6 +284,31 @@ Print('saving')
     end   
 end 
 
+void TestSplit()
+   PrintBanner('TEST SPLIT','-=+=-')
+   PrintS('is d the second letter in dave? ')
+   Print(HasSubstringAt('dave',1,'d'))
+   PrintS('is a the second letter in dave? ')
+   Print(HasSubstringAt('dave',1,'a'))
+   PrintS('is av the second and third letter in dave? ')
+   Print(HasSubstringAt('dave',1,'av'))
+   PrintS('is ae the second and third letter in dave? ')
+   Print(HasSubstringAt('dave',1,'ae'))
+   Print('abc split on b is ["a","c"] >> ')
+   var o=Split('abc','b')
+   PrintS('len ')
+   PrintS(Count(o))
+   PrintS(' == 2: ')
+   Print(Count(o)==2)
+   array expected=['a','c']
+   loop x from 0 to Count(o)+(-1)
+      PrintS(o[x])
+      PrintS('==')
+      PrintS( expected[x])
+      PrintS(': ')
+      Print(o[x]==expected[x])
+   end
+   end
 bool HasSubstringAt(string haystack, number haystackPos, string needle)
     number size = Count(haystack)
     number remainingSize = size - haystackPos
@@ -322,7 +338,7 @@ array Split(string str, string delimiter)
 
     number i = 0
     loop
-        if (HasSubstringAt(str, i, "\n"))
+        if (HasSubstringAt(str, i, delimiter))
             Append(ret, currentLine)
             currentLine = ""
             i += delimiterSize
@@ -339,5 +355,4 @@ array Split(string str, string delimiter)
     Append(ret, currentLine)
     return ret
 end
-
 SetUp()
